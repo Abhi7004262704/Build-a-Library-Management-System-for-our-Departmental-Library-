@@ -1,95 +1,117 @@
-#!/usr/bin/env python
-# coding: utf-8
+import tkinter as tk
+from tkinter import messagebox
 
-# In[ ]:
-
-
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Abhi@123", 
+    database="L_M_S"
+)
 class Book:
-    def __init__(self, title, author, ISBN, quantity):
+    def __init__(self, title, author, available_copies):
         self.title = title
         self.author = author
-        self.ISBN = ISBN
-        self.quantity = quantity
+        self.available_copies = available_copies
 
-class User:
-    def __init__(self, username, name):
-        self.username = username
+class Patron:
+    def __init__(self, name):
         self.name = name
 
-class Transaction:
-    def __init__(self, user, book, date):
-        self.user = user
-        self.book = book
-        self.date = date
-def add_book(title, author, ISBN, quantity):
-    # Add a book to the library inventory
-    pass
+class Library:
+    def __init__(self):
+        self.books = []
+        self.patrons = []
+        self.transactions = []
 
-def remove_book(ISBN):
-    # Remove a book from the library inventory
-    pass
+    def add_book(self, book):
+        self.books.append(book)
 
-def search_books(keyword):
-    # Search for books by title, author, or ISBN
-    pass
+    def add_patron(self, patron):
+        self.patrons.append(patron)
 
-def check_out_book(username, ISBN):
-    # Check out a book to a user
-    pass
+    def borrow_book(self, patron, book):
+        if book.available_copies > 0:
+            book.available_copies -= 1
+            transaction = {'patron': patron.name, 'book': book.title, 'action': 'borrow'}
+            self.transactions.append(transaction)
+            messagebox.showinfo("Borrow Book", f"{patron.name} has borrowed {book.title}.")
+        else:
+            messagebox.showinfo("Borrow Book", f"Sorry, {book.title} is not available for borrowing.")
 
-def check_in_book(ISBN):
-    # Check in a book from a user
-    pass
+    def return_book(self, patron, book):
+        book.available_copies += 1
+        transaction = {'patron': patron.name, 'book': book.title, 'action': 'return'}
+        self.transactions.append(transaction)
+        messagebox.showinfo("Return Book", f"{patron.name} has returned {book.title}.")
 
-def view_transaction_history(username):
-    # View transaction history for a user
-    pass
-while True:
-    print("1. Add Book")
-    print("2. Remove Book")
-    print("3. Search Books")
-    print("4. Check Out Book")
-    print("5. Check In Book")
-    print("6. View Transaction History")
-    print("7. Exit")
+class LibraryManagementApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Library Management System")
 
-    choice = input("Enter your choice: ")
+        self.library = Library()
 
-    if choice == "1":
-        # Take input for book details and call add_book function
-        pass
-    elif choice == "2":
-        # Take input for ISBN and call remove_book function
-        pass
-    elif choice == "3":
-        # Take input for search keyword and call search_books function
-        pass
-    elif choice == "4":
-        # Take input for username and ISBN, then call check_out_book function
-        pass
-    elif choice == "5":
-        # Take input for ISBN and call check_in_book function
-        pass
-    elif choice == "6":
-        # Take input for username and call view_transaction_history function
-        pass
-    elif choice == "7":
-        break
-    else:
-        print("Invalid choice. Please try again.")
-# Example using SQLite
-import sqlite3
+        # Create widgets
+        self.book_label = tk.Label(root, text="Book Title:")
+        self.book_entry = tk.Entry(root)
+        self.author_label = tk.Label(root, text="Author:")
+        self.author_entry = tk.Entry(root)
+        self.copies_label = tk.Label(root, text="Available Copies:")
+        self.copies_entry = tk.Entry(root)
+        self.add_book_button = tk.Button(root, text="Add Book", command=self.add_book)
 
-conn = sqlite3.connect('library.db')
-cursor = conn.cursor()
+        self.patron_label = tk.Label(root, text="Patron Name:")
+        self.patron_entry = tk.Entry(root)
+        self.borrow_book_button = tk.Button(root, text="Borrow Book", command=self.borrow_book)
+        self.return_book_button = tk.Button(root, text="Return Book", command=self.return_book)
 
-# Create tables for books, users, transactions, etc.
+        # Layout
+        self.book_label.grid(row=0, column=0, padx=10, pady=10)
+        self.book_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.author_label.grid(row=1, column=0, padx=10, pady=10)
+        self.author_entry.grid(row=1, column=1, padx=10, pady=10)
+        self.copies_label.grid(row=2, column=0, padx=10, pady=10)
+        self.copies_entry.grid(row=2, column=1, padx=10, pady=10)
+        self.add_book_button.grid(row=3, column=0, columnspan=2, pady=10)
 
-# Modify functions to interact with the database
+        self.patron_label.grid(row=4, column=0, padx=10, pady=10)
+        self.patron_entry.grid(row=4, column=1, padx=10, pady=10)
+        self.borrow_book_button.grid(row=5, column=0, pady=10)
+        self.return_book_button.grid(row=5, column=1, pady=10)
 
+    def add_book(self):
+        title = self.book_entry.get()
+        author = self.author_entry.get()
+        copies = int(self.copies_entry.get())
+        book = Book(title, author, copies)
+        self.library.add_book(book)
+        messagebox.showinfo("Add Book", f"Book '{title}' added to the library.")
 
-# In[ ]:
+    def borrow_book(self):
+        patron_name = self.patron_entry.get()
+        book_title = self.book_entry.get()
+        patron = Patron(patron_name)
 
+        # Check if the book exists
+        book = next((b for b in self.library.books if b.title == book_title), None)
+        if book:
+            self.library.borrow_book(patron, book)
+        else:
+            messagebox.showinfo("Borrow Book", f"Book '{book_title}' not found in the library.")
 
+    def return_book(self):
+        patron_name = self.patron_entry.get()
+        book_title = self.book_entry.get()
+        patron = Patron(patron_name)
 
+        # Check if the book exists
+        book = next((b for b in self.library.books if b.title == book_title), None)
+        if book:
+            self.library.return_book(patron, book)
+        else:
+            messagebox.showinfo("Return Book", f"Book '{book_title}' not found in the library.")
 
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = LibraryManagementApp(root)
+    root.mainloop()
