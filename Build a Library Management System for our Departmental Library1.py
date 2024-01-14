@@ -1,11 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
-
+import mysql.connector
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
     password="Abhi@123", 
-    database="L_M_S"
+    database="Library_app"
 )
 class Book:
     def __init__(self, title, author, available_copies):
